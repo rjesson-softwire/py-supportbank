@@ -1,0 +1,4 @@
+INFO:__main__:Started
+INFO:__main__:Reading file
+ERROR:__main__:Invalid amount
+INFO:__main__:Finished
