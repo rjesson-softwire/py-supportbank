@@ -1,6 +1,15 @@
 import csv
+import json
 import logging
-import re
+
+def banking(file):
+    print("Please enter List All to see all balances, or List [Account] to see the transactions of an individual.")
+    option = input("Enter your option: ")[5:]
+
+    if option == "All":
+        all_accounts(file)
+    else:
+        account(file, option)
 
 def all_accounts(file):
     balances = {}
@@ -31,18 +40,29 @@ logging.basicConfig(filename='SupportBank.log', filemode='w', level=logging.DEBU
 logger = logging.getLogger(__name__)
 logger.info("Started")
 
-with open("DodgyTransactions2015.csv", mode='r') as csvfile:
-    f = csv.reader(csvfile)
-    logger.info("Reading file")
+filetype = input("Enter file type: ")
 
-    next(f)
+if filetype == "csv":
+    with open("DodgyTransactions2015.csv", mode='r') as csvfile:
+        f = csv.reader(csvfile)
+        logger.info("Reading csv file")
 
-    print("Please enter List All to see all balances, or List [Account] to see the transactions of an individual.")
-    option = input("Enter your option: ")[5:]
+        next(f)
 
-    if option == "All":
-        all_accounts(f)
-    else:
-        account(f, option)
+        banking(f)
+
+elif filetype == "json":
+    with open ("Transactions2013.json", 'r') as jsonfile:
+        f = json.load(jsonfile)
+        logger.info("Reading json file")
+
+        print(f)
+
+        data = []
+
+        for row in f:
+            data.append([row['Date'], row['FromAccount'], row['ToAccount'], row['Narrative'], row['Amount']])
+
+        banking(data)
 
 logger.info("Finished")
