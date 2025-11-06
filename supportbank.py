@@ -3,6 +3,7 @@ import json
 from bs4 import BeautifulSoup
 import logging
 import datetime
+import re
 
 logging.basicConfig(filename='SupportBank.log', filemode='w', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -50,10 +51,12 @@ def banking(data):
             a.calculate_balance(transactions)
             text = a.name + ": £" + str(round(a.balance, 2))
             output += text + "\n"
-    else:
+    elif option != "":
         for a in accounts:
             if option == a.name:
                 output += a.display_own_transactions(transactions)
+    else:
+        return
 
     print(output)
 
@@ -65,11 +68,11 @@ def process_data(data):
     for row in data:
         try:
             amount = float(row[4])
-            transactions.append(Transaction(row[0], row[1], row[2], row[3], float(row[4])))
+            transactions.append(Transaction(str(row[0]), row[1], row[2], row[3], amount))
         except ValueError:
             logger.error("Invalid amount")
             print("ERROR: Invalid amount in:")
-            print(row)
+            print([str(row[0]), row[1], row[2], row[3], row[4]])
             print("Emitting this entry.")
         names.add(row[1])
         names.add(row[2])
@@ -90,7 +93,23 @@ if filetype == "csv":
 
         next(f)
 
-        banking(f)
+        data = []
+
+        for row in f:
+            date = row[0]
+            date_pattern = re.compile("\d{2}\/\d{2}\/\d{4}")
+            if re.match(date_pattern, date):
+                date = datetime.date(int(date[6:10]), int(date[3:5]), int(date[0:2]))
+            else:
+                logger.error("Invalid date")
+                print("ERROR: Invalid date in:")
+                print(row)
+                print("Emitting this entry.")
+                continue
+
+            data.append([date, row[1], row[2], row[3], row[4]])
+
+        banking(data)
 elif filetype == "json":
     with open ("Transactions2013.json", 'r') as jsonfile:
         f = json.load(jsonfile)
