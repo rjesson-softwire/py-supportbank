@@ -1,3 +1,4 @@
 INFO:__main__:Started
-INFO:__main__:Reading json file
+INFO:__main__:Reading xml file
+ERROR:__main__:No value on transaction
 INFO:__main__:Finished
