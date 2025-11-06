@@ -24,12 +24,17 @@ class Account:
 
     def display_own_transactions(self, transactions):
         output = ""
+        account_transactions = []
         for t in transactions:
             if t.debtor == self.name:
                 output += str(t.date) + ": Borrowed £" + str(t.amount) + " from " + t.creditor + " for " + t.narrative + "\n"
+                tl = [t.date, t.debtor, t.creditor, t.narrative, t.amount]
+                account_transactions.append(tl)
             elif t.creditor == self.name:
                 output += str(t.date) + ": Lent £" + str(t.amount) + " to " + t.debtor + " for " + t.narrative + "\n"
-        return output
+                tl = [t.date, t.debtor, t.creditor, t.narrative, t.amount]
+                account_transactions.append(tl)
+        return output, account_transactions
 
     def calculate_balance(self, transactions):
         for t in transactions:
@@ -44,22 +49,22 @@ def banking(data):
     print("Please enter List All to see all balances, or List [Account] to see the transactions of an individual.")
     option = input("Enter your option: ")[5:]
 
-    output = ""
-
     if option == "All":
         for a in accounts:
             a.calculate_balance(transactions)
-            text = a.name + ": £" + str(round(a.balance, 2))
-            output += text + "\n"
+            print(a.name + ": £" + str(round(a.balance, 2)))
     elif option != "":
         for a in accounts:
             if option == a.name:
-                output += a.display_own_transactions(transactions)
+                output, account_transactions = a.display_own_transactions(transactions)
+                print(output)
+
+        print("If you would like to export these transactions to a file?")
+        file_name = input("If so, please enter the file name: ")
+        if file_name != "":
+            export_file(account_transactions, file_name)
     else:
         return
-
-    print(output)
-
 
 def process_data(data):
     transactions = []
@@ -79,6 +84,25 @@ def process_data(data):
     for n in names:
         accounts.append(Account(n))
     return transactions, accounts
+
+def export_file(transactions, file_name):
+    type = input("Enter file type: ")
+
+    if type == "csv":
+        file_name = file_name + ".csv"
+        with open(file_name, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["Date", "FromAccount", "ToAccount", "Narrative", "Amount"])
+            writer.writerows(transactions)
+    elif type == "json":
+        file_name = file_name + ".json"
+        types = ["Date", "FromAccount", "ToAccount", "Narrative", "Amount"]
+        for i in range(0, len(transactions)):
+            transactions[i] = dict(zip(types, transactions[i]))
+
+        with open(file_name, 'w', newline='') as jsonfile:
+            json.dump(transactions, jsonfile)
+
 
 def excel_date_to_date(serial_date):
     base_date = datetime.date(1899,12,30)
